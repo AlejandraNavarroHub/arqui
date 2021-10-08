@@ -3,29 +3,46 @@ include macros.asm
 .model small
 .stack 64h
 .data
-    msg1 db "UNIVERSIDAD DE SAN CARLOS DE GUATEMALA","$"
-    msg2 db "Arquitectura de computadores y ensambladores 1","$"
-    msg3 db "Evelyn Alejandra Navarro Ozorio - 201902046","$"
-    msg4 db "Practica 4","$"
-    msg5 db "--------------- INGRESE COMANDO ---------------", "$"
-    msg6 db "Finalizado - 201902046","$"
-    entrada db 100 dup('$')
+    msg1 db 0ah, 0dh,"UNIVERSIDAD DE SAN CARLOS DE GUATEMALA","$"
+    msg2 db 0ah, 0dh,"Arquitectura de computadores y ensambladores 1","$"
+    msg3 db 0ah, 0dh,"Evelyn Alejandra Navarro Ozorio - 201902046","$"
+    msg4 db 0ah, 0dh,"Practica 4","$"
+    msg5 db 0ah, 0dh,"-------- INGRESE COMANDO --------", "$"
+    msg6 db 0ah, 0dh,"Finalizado - 201902046","$"
+    msg7 db "Total de palabras: ","$"
+    entrada db 0ah, 0dh, 100 dup('$')
     comando db 10 dup('$')
-    complemento db 10 dup('$')
-    ente db 0ah, "$"
+    complemento db 20 dup('$')
+    ente db 0ah,0dh, '$'
     iter dw 0d
     iter2 dw 0d
     retorno db 0
     ;Los comandos disponibles
-    abrir db "abrir$$$$$"
-    contar db "contar$$$$"
-    prop db "prop$$$$$$"
-    colorear db "colorear$$"
-    reporte db "reporte$$$"
-    diptongo db "diptongo$$"
-    hiato db "hiato$$$$$"
-    triptongo db "triptongo$"
+    abrir db "abrir$$$$$$"
+    contar db "contar$$$$$"
+    prop db "prop$$$$$$$"
+    colorear db "colorear$$$"
+    reporte db "reporte$$$$"
+    diptongo db "diptongo$$$"
+    hiato db "hiato$$$$$$"
+    triptongo db "triptongo$$"
+    cerrar db "X$$$$$$$$$$"
 
+    ;Los complementos
+    diptongo1 db "diptongo$$$$$$$$$$$$$"
+    triptongo1 db "triptongo$$$$$$$$$$$$"
+    hiato1 db "hiato$$$$$$$$$$$$$$$$"
+    palabra db "palabra$$$$$$$$$$$$$$"
+
+
+    ; archivos
+    contenedor db 1000 dup("$")
+    handle dw ?
+    ruta db 10 dup("$"), 0h
+
+
+    ; conteos
+    resultado db 0
 
 
 .code
@@ -34,32 +51,59 @@ main proc
     mov ds, ax
 
     print msg1
-    print ente
     print msg2
-    print ente
     print msg3
-    print ente
     print msg4
-    print ente
-    print msg5
-    print ente
 
     ;------------ INGRESO DE COMANDOS --------------
+    inicio:
+        print msg5
+        print ente
+        LecturaTec entrada
+        separarComando entrada
+        jmp comparar
     
-    LecturaTec entrada
+    comparar:
+        CompararCadena comando, cerrar
+        cmp retorno, 1
+        jz fin
 
-    separarComando entrada
+        CompararCadena comando, abrir
+        cmp retorno, 1
+        jz openA
+        
+        CompararCadena comando, contar
+        cmp retorno, 1
+        jz count
 
-    print comando
-    print ente
-    print abrir
-    print ente
 
-    CompararCadena comando, abrir
-    Imprimir8bits retorno
+    fin:
+        mov ax,4C00H;AX = 4C00H
+        INT 21H
+    
+    openA:
+        mov complemento[20], 0h 
+        OpenFile complemento,handle
+        ReadFile handle,contenedor,1000   
+        mov complemento[20], "$"
+        print ente
+        print contenedor
+        print ente
+        jmp inicio
+    
+    count:
+        CompararCadena complemento, palabra
+        cmp retorno, 1
+        jz CPal
+    
+    CPal:
+        ContarPalabras contenedor
+        print ente
+        print msg7
+        Imprimir8bits resultado
+        print ente
+        jmp inicio
 
-    mov ax,4C00H;AX = 4C00H
-    INT 21H
 
 main endp
 end main
