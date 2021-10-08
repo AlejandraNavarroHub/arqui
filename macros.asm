@@ -10,6 +10,18 @@ print macro Texto
     pop ax
 endm
 
+print macro Texto
+    push ax
+    push dx
+        mov ax, @data
+        mov ds,ax
+        mov ah,09h ;Numero de funcion para imprimir buffer en pantalla
+        mov dx,offset Texto ;equivalente a que lea dx,buffer, inicializa en dx la posicion donde comienza la cadena
+        int 21h
+    pop dx
+    pop ax
+endm
+
 OpenFile macro buffer,handler
     local erro,fini
     mov AX,@data
@@ -57,7 +69,7 @@ LecturaTec macro entrada
     otroCiclo:
     mov entrada[bx],"$"
     inc bx
-    cmp bx,100
+    cmp bx, 100
     jnz otroCiclo
     xor bx,bx
     salto:
@@ -69,7 +81,7 @@ LecturaTec macro entrada
     jz finalM
     mov entrada[bx],al
     inc bx; DEJAR DE LEER CUANDO AL ES 10,13
-    cmp bx,100
+    cmp bx, 100
     jnz salto
     finalM:
     pop bx
@@ -77,7 +89,9 @@ endm
 
 separarComando macro entrada
     xor di,di
-   
+    mov iter, 0d
+    mov iter2, 0d
+
     jmp search
     search:
         mov al, entrada[di]
@@ -107,6 +121,7 @@ separarComando macro entrada
         inc iter
         mov di, iter
         cmp di, 100
+        jz salir
         mov complemento[si], al
         ciclo:
         inc iter2
@@ -116,7 +131,6 @@ separarComando macro entrada
         jz salir
         
     salir:
-        pop si
 endm
 
 CompararCadena macro cadena1,cadenaDos
@@ -184,4 +198,24 @@ ImprimirNumero macro registro
 
     pop dx
     pop ax
+endm
+
+ContarPalabras macro contenedor
+    xor bx,bx
+    mov bx, 0
+    xor ax, ax
+    mov resultado, 1
+    salto:
+        mov al, contenedor[bx]
+        cmp al, 32
+        jz sumar 
+        cmp al, 36
+        jz dolar
+    sumar:
+        inc bx
+        inc resultado
+        jmp salto
+    dolar:
+        xor bx, bx
+        xor ax, ax
 endm
